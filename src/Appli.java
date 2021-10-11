@@ -1,3 +1,6 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Appli {
@@ -25,9 +28,15 @@ public class Appli {
 					finished = true;
 					break;
 				case 5:
-					saveInFile();
+					try {
+						saveInFile();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 					break;
-
+				case 6:
+					sellProduct();
+					break;
 			}
 
 			
@@ -40,16 +49,13 @@ public class Appli {
 	public static MyShop createShop(){
 		System.out.println("Enter the shop name");
 		String shopName = scan.next();
-		System.out.println(shopName);
-		
 		return new MyShop(shopName);
 	}
 	
 	public static int menu(){
 		System.out.println("do you want to create stock(1) or create product(2) or browse stocks(3) or " +
-				"exit the program(4) save all data into file(5) enter the number that corresponde");
-		int response = scan.nextInt();
-		return response;
+				"exit the program(4) save all data into file(5) sell a product(6) enter the number that correspond");
+		return scan.nextInt();
 	}
 	
 	public static void createStock(){
@@ -57,24 +63,19 @@ public class Appli {
 		String stockName = scan.next();
 		System.out.println("Enter the stock address");
 		String stockAddress = scan.next();
-		
 		Stock stock = new Stock(stockName,stockAddress);
-		stock.display();
 		shop.addStock(stock);
 	}
 	
 	public static void createProduct(){
 		Stock stockChosen = chooseStock();
-		switch (chooseProductType()){
-			case "Alimentary":
-				createProductAlimentary(stockChosen);
-				break;
-			case "Sanitary":
-				createProductSanitary(stockChosen);
-				break;
-			default:
+		switch (chooseProductType()) {
+			case "Alimentary" -> createProductAlimentary(stockChosen);
+			case "Sanitary" -> createProductSanitary(stockChosen);
+			default -> {
 				System.out.println("type of product is wrong ");
 				createProduct();
+			}
 		}
 	}
 	
@@ -98,7 +99,6 @@ public class Appli {
 		String productName = scan.next();
 		System.out.println("Enter the product quantity");
 		int productQuantity = scan.nextInt();
-	
 		ProductSanitary prod = new ProductSanitary(productName, productQuantity);
 		s.add(prod);
 	}
@@ -106,28 +106,92 @@ public class Appli {
 	public static Stock chooseStock(){
 		System.out.println("Enter the name of the stock you want to choose");
 		String currentStockName = scan.next();
-		System.out.println(currentStockName);
 		Stock currentStock = shop.nameToStock(currentStockName);
-		shop.display();
-		currentStock.display();
 		return currentStock;
+	}
+
+	public static Product chooseProduct(Stock s){
+		System.out.println("Enter the name of the product you want to choose");
+		String productName = scan.next();
+
+		return s.nameToProduct(productName);
+
 	}
 	
 	public static String chooseProductType(){
 		System.out.println("Enter the type of product (Alimentary/Sanitary)");
-		String productType = scan.next();
-		return productType;
+		return scan.next();
 	}
 	
 	public static void browseStock(){
 		Stock stockChosen = chooseStock();
 		stockChosen.display();
-		
 	}
 
-	public static void saveInFile(){
+	public static void saveInFile() throws IOException {
+		BufferedWriter buff=new BufferedWriter(new FileWriter("fichier.txt"));
+		saveShop(buff);
+		buff.write("finish");
+		buff.flush();
+		buff.close();
+	}
 
+	public static void saveShop(BufferedWriter buff) throws IOException {
+		buff.write("the shop name is : ");
+		buff.write(shop.getName());
+		buff.newLine();
+		for(int i = 0; i < shop.getStocks().size(); i++){
+			buff.write("Stock " + i);
+			buff.newLine();
+			saveStock(shop.getStocks().get(i), buff);
+		}
+	}
 
+	public static void saveStock(Stock s, BufferedWriter buff) throws IOException {
+		buff.write("the stock name is " + s.getName());
+		buff.newLine();
+
+		buff.write("the stock address is " + s.getAdress());
+		buff.newLine();
+
+		for (int i =0; i < s.size(); i++){
+			buff.write("Product " + i);
+			buff.newLine();
+			saveProduct(s.get(i), buff);
+		}
+
+	}
+
+	public static void saveProduct(Product prod, BufferedWriter buff) throws IOException {
+		buff.write("the product name is " + prod.getName());
+		buff.newLine();
+		buff.write("the product quantity is " + prod.getQuantity());
+		buff.newLine();
+
+	}
+
+	public static void sellProduct(){
+		Stock stock = chooseStock();
+		Product prod = chooseProduct(stock);
+		int quantity = QuantityToBeSold();
+		if(verifyQuantity(prod,quantity)){
+			sellThisItem(prod,quantity);
+		}else{
+			System.out.println("not enough products in the stock");
+		}
+	}
+
+	public static boolean verifyQuantity(Product prod, int quantity){
+		return (quantity <= prod.getQuantity());
+	}
+
+	public static int QuantityToBeSold(){
+		System.out.println("Enter the number of pieces you want to sell");
+		return scan.nextInt();
+	}
+
+	public static void sellThisItem(Product prod, int quantity){
+		prod.sell(quantity);
 	}
 	
 	

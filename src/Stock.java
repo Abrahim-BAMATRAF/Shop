@@ -33,7 +33,7 @@ public class Stock extends Vector<Product> {
 		Iterator<Product> it = this.iterator();
 		while(it.hasNext()){
 			Product current = it.next();
-			if(name == current.getName()){
+			if(name.equals(current.getName())){
 				return current;
 			}
 		}

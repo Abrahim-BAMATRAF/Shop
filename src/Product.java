@@ -56,6 +56,12 @@ public abstract class Product {
 		System.out.println("the product name is : " + this.getName());
 		System.out.println("the product quantity is : " + this.getQuantity());
 	}
+
+	public void sell(int quantity){
+		if(quantity <= this.quantity){
+			this.quantity -= quantity;
+		}
+	}
 	
 
 }
